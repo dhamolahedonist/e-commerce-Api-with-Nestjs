@@ -2,14 +2,29 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserSignUpDto } from './dto/user-signup.dto';
+import { UserEntity } from './entities/user.entity';
+import { UserSignInDto } from './dto/user-singin.dto';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post('signup')
-  async signup(@Body() body:any){
-    return await this.usersService.signup(body)
+  async signup(@Body() userSignUpDto:UserSignUpDto): Promise<{user:UserEntity}>{
+    return {user:await this.usersService.signup(userSignUpDto)}
+
+  }
+
+
+  @Post('signin')
+  async signin(@Body() userSignInDto:UserSignInDto):  Promise<{
+    accessToken: string;
+    user: UserEntity;
+}>{
+    const user = await this.usersService.signin(userSignInDto)
+    const accessToken = await this.usersService.accessToken(user)
+    return {accessToken, user}
 
   }
 
@@ -19,13 +34,13 @@ export class UsersController {
     return 'hi'
   }
 
-  @Get()
-  findAll() {
-    return this.usersService.findAll();
+  @Get('all')
+  async findAll(): Promise<UserEntity[]> {
+    return await this.usersService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: string): Promise<UserEntity> {
     return this.usersService.findOne(+id);
   }
 
