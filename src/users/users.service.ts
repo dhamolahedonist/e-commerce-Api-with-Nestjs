@@ -8,6 +8,7 @@ import { UserSignUpDto } from './dto/user-signup.dto';
 import { compare, hash } from 'bcrypt'
 import { UserSignInDto } from './dto/user-singin.dto';
 import { sign } from 'jsonwebtoken';
+import { CurrentUser } from 'src/utility/decorators/current-user.decorator';
 
 @Injectable()
 export class UsersService {
@@ -47,12 +48,23 @@ export class UsersService {
     return await this.userRepository.find()
   }
 
-  async findOne(id: number): Promise<UserEntity> {
-    
-    const user = await this.userRepository.findOneBy({id})
-    if(!user) throw new NotFoundException('User not found')
-    return user
+  async findOne(id: number): Promise<UserEntity>  {
+    try {
+      const user = await this.userRepository.findOne({ where: { id }});
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+      return user;
+    } catch (error) {
+      console.log('>>>', error);
+      throw error;
+    }
   }
+  
+  // async getProfile(@CurrentUser() currentUser:UserEntity){
+  //   console.log(currentUser)
+  //   return currentUser
+  // }
 
   update(id: number, updateUserDto: UpdateUserDto) {
     return `This action updates a #${id} user`;
